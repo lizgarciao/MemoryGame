@@ -1,11 +1,13 @@
 package com.lizgarciao.mymemorygame
 
+import android.animation.ArgbEvaluator
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         tvNumPairs = findViewById(R.id.tvNumPairs)
         clRoot = findViewById(R.id.clRoot)
 
+        tvNumPairs.setTextColor(ContextCompat.getColor(this, R.color.color_progress_none))
         memoryGame = MemoryGame(boardSize)
 
         // 'object' keyword is used to create an anonymous class of type MemoryBoardAdapter.CardClickListener
@@ -66,13 +69,24 @@ class MainActivity : AppCompatActivity() {
             return
         }
         if (memoryGame.isCardFaceUp(position)) {
-            Snackbar.make(clRoot, "Invalid move!", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(clRoot, "Invalid move!", Snackbar.LENGTH_SHORT).show()
             return
         }
 
         if (memoryGame.flipCard(position)) {
             Log.i(TAG, "Found a match! Num pairs found: ${memoryGame.numPairsFound}")
+            val color = ArgbEvaluator().evaluate (
+                memoryGame.numPairsFound.toFloat() / boardSize.getNumPairs(),
+                ContextCompat.getColor(this, R.color.color_progress_none),
+                ContextCompat.getColor(this, R.color.color_progress_full)
+            ) as Int
+            tvNumPairs.setTextColor(color)
+            tvNumPairs.text = "Pairs: ${memoryGame.numPairsFound} / ${boardSize.getNumPairs()}"
+            if (memoryGame.hasWonGame()) {
+                Snackbar.make(clRoot, "You won! Congratulations.", Snackbar.LENGTH_LONG).show()
+            }
         }
+        tvNumMoves.text = "Moves: ${memoryGame.getNumMoves()}"
         // Notify the RecyclerView's adapter that the data has changed so it updates the view
         adapter.notifyDataSetChanged()
     }
