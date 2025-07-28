@@ -1,6 +1,7 @@
 package com.lizgarciao.mymemorygame
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -9,9 +10,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.lizgarciao.mymemorygame.models.BoardSize
+import com.lizgarciao.mymemorygame.models.MemoryCard
+import com.lizgarciao.mymemorygame.models.MemoryGame
 import com.lizgarciao.mymemorygame.utils.DEFAULT_ICONS
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     private lateinit var rvBoard: RecyclerView
     private lateinit var tvNumMoves: TextView
     private lateinit var tvNumPairs: TextView
@@ -32,11 +40,14 @@ class MainActivity : AppCompatActivity() {
         tvNumMoves = findViewById(R.id.tvNumMoves)
         tvNumPairs = findViewById(R.id.tvNumPairs)
 
-        val chosenImages = DEFAULT_ICONS.shuffled().take(boardSize.getNumPairs())
-        val randomizedImages = (chosenImages + chosenImages).shuffled()
+        val memoryGame = MemoryGame(boardSize)
 
-        // numPieces = number of cards (data items)
-        rvBoard.adapter = MemoryBoardAdapter(this, boardSize, randomizedImages)
+        // 'object' keyword is used to create an anonymous class of type MemoryBoardAdapter.CardClickListener
+        rvBoard.adapter = MemoryBoardAdapter(this, boardSize, memoryGame.cards, object: MemoryBoardAdapter.CardClickListener {
+            override fun onCardClicked(position: Int) {
+                Log.i(TAG, "Card clicked: $position")
+            }
+        })
         rvBoard.setHasFixedSize(true)
         // spanCount = number of columns
         rvBoard.layoutManager = GridLayoutManager(this, boardSize.getWidth())
